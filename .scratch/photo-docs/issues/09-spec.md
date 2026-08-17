@@ -102,13 +102,13 @@ A fullstack JavaScript webapp (Next.js) that provides a camera-first interface f
 
 ## Implementation Decisions
 
-- **Photo capture**: `getUserMedia()` opens the camera once; each capture taps the canvas `drawImage` approach to grab the current video frame and export it as a JPEG via `canvas.toDataURL()`. Camera must be re-acquired on return from background via `visibilitychange` listener.
+- **Photo capture**: `getUserMedia()` opens the camera once; capture uses canvas `drawImage` or a lightweight wrapper component (e.g. `react-camera-component`) to grab the current video frame and export it as a JPEG. Camera must be re-acquired on return from background via `visibilitychange` listener.
 - **Interaction model**: Option A — in-camera strip. Photos appear in a scrollable strip below the viewfinder. All captured photos are implicitly selected. Tapping a photo in the strip toggles its rejection. Selection is implicit (all photos selected by default), rejection is toggle (reversible until submit). Cancel discards the session. Submit triggers transfer to Nextcloud.
-- **Architecture**: Next.js fullstack. API routes handle backend logic (upload, folder navigation). Frontend handles capture, selection, and UI.
+- **Architecture**: Next.js fullstack. API routes handle backend logic (upload, folder navigation). Frontend handles capture, selection, and UI using ShadCN UI components and Tailwind CSS.
 - **Storage**: IndexedDB for local photo caching between capture and submit. `navigator.storage.persist()` is requested to protect against LRU eviction. All writes wrapped in `try...catch` for `QuotaExceededError`.
 - **Upload approach**: Hybrid — photos are stored temporarily locally, then uploaded asynchronously to Nextcloud via chunked transfer. Async upload decouples capture from transfer and enables background upload and mid-upload retry.
-- **Upload protocol**: Nextcloud REST API (not WebDAV). Chunked upload v2 for resumable transfers. `@nextcloud/upload` npm package wraps the protocol with built-in retry.
-- **StorageAdapter seam**: `StorageAdapter` interface defines the contract for storage operations (`save`, `list`, `get`, `delete`, `folderExists`, `createFolder`). Two implementations: `NextcloudStorageAdapter` (production) and `MockStorageAdapter` (testing/development). Factory driven by `STORAGE_ADAPTER` environment variable (`nextcloud|mock`).
+- **Upload protocol**: Nextcloud REST API (not WebDAV). Chunked upload v2 for resumable transfers using Nextcloud client libraries (e.g. `@nextcloud/upload` / `@nextcloud/client-web`).
+- **StorageAdapter seam**: `StorageAdapter` interface defines the contract for storage operations (`save`, `list`, `get`, `delete`, `folderExists`, `createFolder`). Two implementations: `NextcloudStorageAdapter` (production, backed by Nextcloud client library) and `MockStorageAdapter` (testing/development). Factory driven by `STORAGE_ADAPTER` environment variable (`nextcloud|mock`).
 - **Authentication**: Primary — Nextcloud as the authentication provider, reusing existing Nextcloud accounts. Fallback — a separate auth provider with an API token for a single integration user. The spec evaluates Nextcloud auth first.
 - **Responsive design**: T-shirt sizes only — small (smartphone, e.g. 375px and up), medium (tablet, e.g. 768px and up). Desktop is out of scope. The spec uses responsive breakpoints as implementation detail.
 - **PWA**: Recommended (service worker for offline capability and installability). iOS Safari lacks background sync but sync resumes when the page returns.
