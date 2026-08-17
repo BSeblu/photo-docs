@@ -16,28 +16,21 @@ interface PhotoStripProps {
   photos: Photo[];
   selectedCount: number;
   rejectedCount: number;
-  /** Max number of thumbs visible at once (tablet expanded). */
-  visibleThumbs?: number;
+  /** If true, tablet side-by-side mode — strip gets a fixed width and expands vertically */
+  sideBySide?: boolean;
   onToggleRejection: (photoId: string) => void;
   className?: string;
 }
 
 /**
  * PhotoStrip — horizontal scrollable row of captured thumbnails.
- * On smartphone: scrolls horizontally, snap-mandatory.
- * On tablet: expands to show `visibleThumbs` thumbnails in a wrap row.
+ * Smartphone portrait: horizontal scroll, snap-mandatory, full-width.
+ * Smartphone landscape: horizontal scroll, more compact.
+ * Tablet (side-by-side mode): narrower fixed column, wrap-enabled, 3-4 thumbs visible.
  */
 export const PhotoStrip = React.forwardRef<HTMLDivElement, PhotoStripProps>(
   (
-    {
-      photos,
-      selectedCount,
-      rejectedCount,
-      visibleThumbs = 4,
-      onToggleRejection,
-      className,
-      ...props
-    },
+    { photos, selectedCount, rejectedCount, sideBySide = false, onToggleRejection, className, ...props },
     ref
   ) => {
     return (
@@ -45,6 +38,8 @@ export const PhotoStrip = React.forwardRef<HTMLDivElement, PhotoStripProps>(
         ref={ref}
         className={cn(
           "w-full border-t border-zinc-800 bg-zinc-950",
+          // Tablet side-by-side: fixed width column
+          sideBySide && "w-48 shrink-0 border-t-0 border-l border-zinc-800",
           className
         )}
         aria-label="Captured photos strip"
@@ -61,16 +56,11 @@ export const PhotoStrip = React.forwardRef<HTMLDivElement, PhotoStripProps>(
             className={cn(
               "flex gap-2 p-2",
               // Smartphone: horizontal scroll with snap
-              "overflow-x-auto snap-x snap-mandatory",
-              // Tablet: wrap to show more thumbnails
-              "sm:overflow-x-visible sm:flex-wrap sm:snap-none"
+              !sideBySide && "overflow-x-auto snap-x snap-mandatory",
+              // Tablet side-by-side: wrap to show 3-4 thumbnails
+              sideBySide && "overflow-x-visible flex-wrap snap-none",
+              "overflow-y-auto"
             )}
-            style={{
-              // On tablet, constrain visible thumbnails via flex-wrap + max-width
-              ...(photos.length > visibleThumbs
-                ? { maxWidth: `${visibleThumbs * 5 + 0.5}rem` }
-                : {}),
-            }}
           >
             {photos.map((photo) => (
               <div
@@ -81,8 +71,8 @@ export const PhotoStrip = React.forwardRef<HTMLDivElement, PhotoStripProps>(
                   photo.rejected
                     ? "border-red-500 opacity-60"
                     : "border-zinc-700 hover:border-zinc-500",
-                  // Tablet: larger thumbnails
-                  "sm:w-20 sm:h-20"
+                  // Tablet: slightly larger thumbnails
+                  sideBySide && "w-20 h-20 snap-none"
                 )}
                 onClick={() => onToggleRejection(photo.id)}
                 role="button"

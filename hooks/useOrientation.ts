@@ -3,19 +3,28 @@
 import { useState, useEffect, useCallback } from "react";
 
 type Orientation = "portrait" | "landscape";
+type Breakpoint = "small" | "medium";
 
 interface OrientationInfo {
   orientation: Orientation;
   width: number;
   height: number;
+  breakpoint: Breakpoint;
+  isSmall: boolean;
+  isMedium: boolean;
 }
+
+const SMALL_BREAKPOINT = 768;
 
 export function useOrientation(): OrientationInfo {
   const getOrientation = useCallback((): OrientationInfo => {
     const width = window.innerWidth;
     const height = window.innerHeight;
     const orientation = width < height ? "portrait" : "landscape";
-    return { orientation, width, height };
+    const isSmall = width < SMALL_BREAKPOINT;
+    const isMedium = width >= SMALL_BREAKPOINT;
+    const breakpoint = isSmall ? "small" : "medium";
+    return { orientation, width, height, breakpoint, isSmall, isMedium };
   }, []);
 
   const [info, setInfo] = useState<OrientationInfo>(getOrientation);
