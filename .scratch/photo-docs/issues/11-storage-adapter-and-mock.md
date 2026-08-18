@@ -1,13 +1,14 @@
-# 11 — StorageAdapter interface and MockStorageAdapter
+# 11 — Storage interface and MockStorage
 
-**What to build:** An abstraction interface `StorageAdapter` defining common file and folder operations (`save`, `list`, `get`, `delete`, `folderExists`, `createFolder`), paired with an in-memory/filesystem `MockStorageAdapter` with pre-seeded test folders and error injection controls (network drop, quota exceeded, auth failure). A factory creates the appropriate adapter according to the `STORAGE_ADAPTER` environment variable.
+**What to build:** A `Storage` interface defining common file and folder operations (`save`, `list`, `get`, `delete`, `folderExists`, `createFolder`), paired with an in-memory `MockStorage` implementation with pre-seeded test folders and error injection controls (network drop, quota exceeded, auth failure). A factory creates the appropriate backend according to the `STORAGE_BACKEND` environment variable.
 
-**Blocked by:** 10 — Next.js project scaffolding with ShadCN and test runner
+**Blocked by:** 10b — Unit testing setup
 
 **Status:** ready-for-agent
 
-- [ ] `StorageAdapter` TypeScript interface defined with standard folder and file CRUD methods
-- [ ] `MockStorageAdapter` implements `StorageAdapter` with configurable seeded folder hierarchy
-- [ ] `MockStorageAdapter` provides hooks to simulate failures (quota exceeded, network timeouts, auth errors)
-- [ ] Factory / provider selects adapter via `STORAGE_ADAPTER=mock|nextcloud`
-- [ ] Unit tests verify `MockStorageAdapter` behavior and error simulation
+- [ ] `Storage` TypeScript interface defined in `src/lib/storage/types.ts` with standard folder and file CRUD methods
+- [ ] `MockStorage` implements `Storage` in `src/lib/storage/mock.storage.ts` with configurable seeded folder hierarchy
+- [ ] `MockStorage` provides hooks to simulate failures (quota exceeded, network timeouts, auth errors)
+- [ ] `createStorage()` factory in `src/lib/storage/index.ts` selects backend via `STORAGE_BACKEND=mock|nextcloud`
+- [ ] Barrel export from `src/lib/storage/index.ts`
+- [ ] Unit tests verify `MockStorage` behavior and error simulation

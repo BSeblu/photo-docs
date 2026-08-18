@@ -2,7 +2,7 @@
 
 **What to build:** A camera viewfinder interface built on Next.js / ShadCN (using canvas capture or a lightweight wrapper such as `react-camera-component`) that opens the device camera on load and captures full-resolution JPEG photos on a single tap without closing or interrupting the live stream. Automatically re-acquires the camera stream when returning from background/screen lock.
 
-**Blocked by:** 10 — Next.js project scaffolding with ShadCN and test runner, 11 — StorageAdapter interface and MockStorageAdapter
+**Blocked by:** 11 — Storage interface and MockStorage, 10c — ShadCN/Tailwind setup, 10d — E2E testing setup
 
 **Status:** ready-for-agent
 

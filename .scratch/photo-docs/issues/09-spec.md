@@ -8,7 +8,7 @@ A spec that evaluates whether a webapp can integrate device capabilities (camera
 
 ## Solution
 
-A fullstack JavaScript webapp (Next.js) that provides a camera-first interface for photographers to capture photos one interaction at a time, select which photos to upload by toggling rejection in an in-camera strip, and transfer marked photos to their Nextcloud storage. The app works offline by storing captures locally in IndexedDB and uploading them in the background when connectivity returns, with a StorageAdapter abstraction that swappably supports a mock storage backend for testing and development alongside the production Nextcloud adapter.
+A fullstack JavaScript webapp (Next.js) that provides a camera-first interface for photographers to capture photos one interaction at a time, select which photos to upload by toggling rejection in an in-camera strip, and transfer marked photos to their Nextcloud storage. The app works offline by storing captures locally in IndexedDB and uploading them in the background when connectivity returns, with a Storage abstraction that swappably supports a mock storage backend for testing and development alongside the production Nextcloud adapter.
 
 ## User Stories
 
@@ -49,12 +49,12 @@ A fullstack JavaScript webapp (Next.js) that provides a camera-first interface f
 1. As a photographer, I want my queued photos to remain in the upload queue after re-authentication succeeds so that I do not need to re-select them.
 1. As a photographer, I want to avoid naming conflicts when a file with the same name already exists in the target Nextcloud folder so that I do not accidentally overwrite an existing file.
 1. As a photographer, I want the app to auto-rename conflicting files (e.g., appending a suffix like `photo (1).jpg`) when a conflict is detected so that both the existing and new file are preserved.
-1. As a developer, I want the `StorageAdapter` interface to abstract the actual storage implementation so that I can swap mock storage for testing and development without changing domain logic.
-1. As a developer, I want a `MockStorageAdapter` implementation that returns seeded folder structures as initial content so that my test environment mirrors a real Nextcloud folder hierarchy.
+1. As a developer, I want the `Storage` interface to abstract the actual storage implementation so that I can swap mock storage for testing and development without changing domain logic.
+1. As a developer, I want a `MockStorage` implementation that returns seeded folder structures as initial content so that my test environment mirrors a real Nextcloud folder hierarchy.
 1. As a developer working on the frontend, I want to use the mock storage adapter so that I can test capture, selection, and rejection flows without a running Nextcloud instance.
 1. As a developer writing unit tests, I want the mock storage adapter to support error injection (quota exceeded, network failure, auth token expiry) so that I can test how the app handles each error condition.
-1. As a developer, I want the `StorageAdapter` factory to be driven by an environment variable (`STORAGE_ADAPTER=nextcloud|mock`) so that switching between production and test implementations requires zero code changes.
-1. As a developer, I want the `NextcloudStorageAdapter` to implement the upload via chunked transfer with retry so that production uploads are resilient to connectivity drops.
+1. As a developer, I want the `Storage` factory to be driven by an environment variable (`STORAGE_BACKEND=nextcloud|mock`) so that switching between production and test implementations requires zero code changes.
+1. As a developer, I want the `NextCloudStorage` to implement the upload via chunked transfer with retry so that production uploads are resilient to connectivity drops.
 1. As a developer, I want each photo file to retain its original JPEG format and EXIF metadata (timestamp, orientation, GPS if available) so that I do not lose any image data during capture, storage, or transfer.
 1. As a developer, I want photo files to be named using their capture timestamp so that each file has a unique, sortable, and predictable name.
 1. As a developer working on backend infrastructure, I want the Next.js API routes to handle the upload logic so that the backend and frontend can be developed and deployed independently.
@@ -88,7 +88,7 @@ A fullstack JavaScript webapp (Next.js) that provides a camera-first interface f
 1. As a developer, I want to be able to check available browser storage space with `navigator.storage.estimate()` so that I can proactively warn users before they run out of quota.
 1. As a developer, I want the app to request persistent storage via `navigator.storage.persist()` so that critical photos are protected from LRU eviction under storage pressure.
 1. As a developer, I want all `IndexedDB` write operations to be wrapped in `try...catch` blocks to handle `QuotaExceededError` gracefully so that the app does not crash when storage is full.
-1. As a developer, I want the `StorageAdapter` interface to define a clear contract for `save`, `list`, `get`, `delete`, `folderExists`, `createFolder`, and `deleteFolder` operations so that both implementations adhere to the same API.
+1. As a developer, I want the `Storage` interface to define a clear contract for `save`, `list`, `get`, `delete`, `folderExists`, `createFolder`, and `deleteFolder` operations so that both implementations adhere to the same API.
 1. As a developer, I want the mock storage adapter to persist its state in memory (with optional filesystem fallback) so that tests are isolated and do not interfere with each other.
 1. As a developer, I want the image format decision to specify JPEG with EXIF retained as the target format for all captured, stored, and transferred photos.
 1. As a developer, I want the file naming strategy to use the capture timestamp (ISO 8601) as the filename so that files are unique, sortable, and human-readable.
@@ -108,22 +108,22 @@ A fullstack JavaScript webapp (Next.js) that provides a camera-first interface f
 - **Storage**: IndexedDB for local photo caching between capture and submit. `navigator.storage.persist()` is requested to protect against LRU eviction. All writes wrapped in `try...catch` for `QuotaExceededError`.
 - **Upload approach**: Hybrid — photos are stored temporarily locally, then uploaded asynchronously to Nextcloud via chunked transfer. Async upload decouples capture from transfer and enables background upload and mid-upload retry.
 - **Upload protocol**: Nextcloud REST API (not WebDAV). Chunked upload v2 for resumable transfers using Nextcloud client libraries (e.g. `@nextcloud/upload` / `@nextcloud/client-web`).
-- **StorageAdapter seam**: `StorageAdapter` interface defines the contract for storage operations (`save`, `list`, `get`, `delete`, `folderExists`, `createFolder`). Two implementations: `NextcloudStorageAdapter` (production, backed by Nextcloud client library) and `MockStorageAdapter` (testing/development). Factory driven by `STORAGE_ADAPTER` environment variable (`nextcloud|mock`).
+- **Storage seam**: `Storage` interface defines the contract for storage operations (`save`, `list`, `get`, `delete`, `folderExists`, `createFolder`). Two implementations: `NextCloudStorage` (production, backed by Nextcloud client library) and `MockStorage` (testing/development). Factory driven by `STORAGE_BACKEND` environment variable (`nextcloud|mock`).
 - **Authentication**: Primary — Nextcloud as the authentication provider, reusing existing Nextcloud accounts. Fallback — a separate auth provider with an API token for a single integration user. The spec evaluates Nextcloud auth first.
 - **Responsive design**: T-shirt sizes only — small (smartphone, e.g. 375px and up), medium (tablet, e.g. 768px and up). Desktop is out of scope. The spec uses responsive breakpoints as implementation detail.
 - **PWA**: Recommended (service worker for offline capability and installability). iOS Safari lacks background sync but sync resumes when the page returns.
 - **Image format and file naming**: Capture timestamp (ISO 8601) used as filename. JPEG with EXIF metadata retained for all photos.
 - **Error handling**: 11 known error modes documented (mid-transfer failure, partial batch failure, storage full, user cancellation, connectivity drop/return, camera stream loss, camera permission denied, Nextcloud auth failure, Nextcloud API errors, file naming conflicts, session abandonment). Each has specified retry mechanism and visual feedback.
-- **Parallel development**: The StorageAdapter abstraction enables frontend and backend teams to develop in parallel. Frontend uses mock storage for isolated development; backend implements the `NextcloudStorageAdapter` against the Nextcloud API. Unit tests run against mock storage without touching production Nextcloud.
+- **Parallel development**: The Storage abstraction enables frontend and backend teams to develop in parallel. Frontend uses mock storage for isolated development; backend implements the `NextCloudStorage` against the Nextcloud API. Unit tests run against mock storage without touching production Nextcloud.
 - **Scope**: The spec is for stakeholders — it describes behavior and architectural decisions, not implementation details. Next.js is specified as the framework family, not as a prescriptive library choice.
 
 ## Testing Decisions
 
-- **Seam tested**: The `StorageAdapter` interface is the highest and only seam required for testing. All storage-adjacent logic (upload pipeline, error handling, session persistence) goes through this seam.
-- **Mock for unit tests**: `MockStorageAdapter` provides in-memory or filesystem-backed storage with seeded folder structures and error injection. Unit tests against the mock verify domain logic without a running Nextcloud instance.
+- **Seam tested**: The `Storage` interface is the highest and only seam required for testing. All storage-adjacent logic (upload pipeline, error handling, session persistence) goes through this seam.
+- **Mock for unit tests**: `MockStorage` provides in-memory or filesystem-backed storage with seeded folder structures and error injection. Unit tests against the mock verify domain logic without a running Nextcloud instance.
 - **Error injection**: The mock supports injecting `QuotaExceededError`, network failure, auth token expiry, and `5xx` server responses. Tests verify that the app handles each error mode correctly (retry, user notification, graceful degradation).
 - **External behavior only**: Tests verify the app's observable behavior (upload status indicators, retry counts, error messages, folder navigation) — not internal implementation details (IndexedDB keys, retry intervals).
-- **Integration testing**: The `NextcloudStorageAdapter` is integration-tested against a staging Nextcloud instance to verify chunked upload, retry, and folder operations work end-to-end.
+- **Integration testing**: The `NextCloudStorage` is integration-tested against a staging Nextcloud instance to verify chunked upload, retry, and folder operations work end-to-end.
 - **Error condition coverage**: Each of the 11 documented error modes has at least one test case that exercises the app's response to that condition.
 
 ## Out of scope
@@ -138,7 +138,7 @@ A fullstack JavaScript webapp (Next.js) that provides a camera-first interface f
 
 - The spec is a stakeholder-facing document that describes behavior and architecture. It does not prescribe specific libraries or code-level implementation details.
 - The wayfinder process (using the wayfinder, grilling, and research skills) produced the architectural decisions documented here. The wayfinder map is at `.scratch/photo-docs/PRD.md`.
-- The `StorageAdapter` seam is the key enabler for parallel frontend/backend development and testability. It was decided in ticket 08-backend-architecture as a hybrid approach: temporary local buffer + async chunked upload to Nextcloud, with `NextcloudStorageAdapter` and `MockStorageAdapter` implementations behind the interface.
+- The `Storage` seam is the key enabler for parallel frontend/backend development and testability. It was decided in ticket 08-backend-architecture as a hybrid approach: temporary local buffer + async chunked upload to Nextcloud, with `NextCloudStorage` and `MockStorage` implementations behind the interface.
 - Nextcloud is the primary auth provider. Re-auth triggers a redirect to Nextcloud OAuth. Upload queue is paused during auth failures and resumes after re-auth.
 - A small prototype was considered but skipped (ticket 07-prototype) because the interaction model was already settled through research and grilling, and a blank Next.js scaffold would not validate anything.
 

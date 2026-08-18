@@ -1,13 +1,13 @@
-# 12 — NextcloudStorageAdapter implementation
+# 12 — NextCloudStorage implementation
 
-**What to build:** A production `NextcloudStorageAdapter` implementing the `StorageAdapter` interface against Nextcloud's REST API using Nextcloud client libraries (e.g. `@nextcloud/upload` or client packages). Supports chunked resumable upload, folder querying, and auto-renaming on conflict.
+**What to build:** A production `NextCloudStorage` implementing the `Storage` interface against NextCloud's REST API using NextCloud client libraries (e.g. `@nextcloud/upload` or client packages). Supports chunked resumable upload, folder querying, and auto-renaming on conflict.
 
-**Blocked by:** 11 — StorageAdapter interface and MockStorageAdapter
+**Blocked by:** 11 — Storage interface and MockStorage
 
 **Status:** ready-for-agent
 
-- [ ] `NextcloudStorageAdapter` implements the `StorageAdapter` interface
-- [ ] Integrates Nextcloud client library / REST API for chunked resumable upload
+- [ ] `NextCloudStorage` implements the `Storage` interface in `src/lib/storage/nextcloud.storage.ts`
+- [ ] Integrates NextCloud client library / REST API for chunked resumable upload
 - [ ] Implements folder creation, listing, and existence checks
 - [ ] Detects name collisions and auto-appends numerical suffix (e.g. `photo (1).jpg`)
-- [ ] Unit/mock integration tests verify adapter against simulated Nextcloud REST responses
+- [ ] Unit/mock integration tests verify storage against simulated NextCloud REST responses
