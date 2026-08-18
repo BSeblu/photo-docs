@@ -1,0 +1,88 @@
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+import {
+  AuthTokenExpiredError,
+  NetworkTimeoutError,
+  QuotaExceededError,
+} from "./errors";
+import { createStorage } from "./index";
+import { MockStorage } from "./mock.storage";
+import type { Storage } from "./types";
+
+const photo = (path: string) => ({
+  path,
+  content: new Blob(["photo"], { type: "image/jpeg" }),
+});
+
+describe("MockStorage", () => {
+  it("supports saving, listing, reading, and deleting files", async () => {
+    const storage: Storage = new MockStorage({ folders: ["jobs/2026"] });
+
+    await storage.save(photo("jobs/2026/photo.jpg"));
+
+    const files = await storage.list("jobs/2026");
+    expect(files.map(({ path }) => path)).toEqual(["jobs/2026/photo.jpg"]);
+    expect(await storage.get("jobs/2026/photo.jpg")).toMatchObject({
+      path: "jobs/2026/photo.jpg",
+      contentType: "image/jpeg",
+      size: 5,
+    });
+
+    await storage.delete("jobs/2026/photo.jpg");
+
+    expect(await storage.get("jobs/2026/photo.jpg")).toBeNull();
+    expect(await storage.list("jobs/2026")).toEqual([]);
+  });
+
+  it("creates folders and reports their existence", async () => {
+    const storage = new MockStorage();
+
+    expect(await storage.folderExists("jobs/2026/august")).toBe(false);
+
+    await storage.createFolder("jobs/2026/august");
+
+    expect(await storage.folderExists("jobs")).toBe(true);
+    expect(await storage.folderExists("jobs/2026/august")).toBe(true);
+  });
+
+  it("injects configured errors into matching operations", async () => {
+    const storage = new MockStorage();
+    storage.injectError("save", new QuotaExceededError());
+
+    await expect(storage.save(photo("photo.jpg"))).rejects.toBeInstanceOf(
+      QuotaExceededError
+    );
+
+    storage.injectError("get", new NetworkTimeoutError());
+    await expect(storage.get("photo.jpg")).rejects.toBeInstanceOf(
+      NetworkTimeoutError
+    );
+
+    storage.injectError("folderExists", new AuthTokenExpiredError());
+    await expect(storage.folderExists("jobs")).rejects.toBeInstanceOf(
+      AuthTokenExpiredError
+    );
+  });
+});
+
+describe("createStorage", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it("creates MockStorage for the mock backend", () => {
+    expect(createStorage({ backend: "mock" })).toBeInstanceOf(MockStorage);
+  });
+
+  it("uses STORAGE_BACKEND when no backend option is provided", () => {
+    vi.stubEnv("STORAGE_BACKEND", "mock");
+
+    expect(createStorage()).toBeInstanceOf(MockStorage);
+  });
+
+  it("rejects unsupported production backends until their adapter exists", () => {
+    expect(() => createStorage({ backend: "nextcloud" })).toThrow(
+      "NextCloudStorage is not available"
+    );
+  });
+});
