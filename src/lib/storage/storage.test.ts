@@ -8,7 +8,7 @@ import {
 import {
   createStorage,
   type StorageBackend,
-  type StorageFactoryOptions,
+  type StorageOptions,
 } from "./index";
 import { NextCloudStorage } from "./nextcloud.storage";
 import { MockStorage } from "./mock.storage";
@@ -98,7 +98,7 @@ describe("createStorage", () => {
     const options = {
       backend: "mock",
       folders: ["jobs"],
-    } satisfies StorageFactoryOptions;
+    } satisfies StorageOptions;
     const backend: StorageBackend = options.backend;
 
     expect(backend).toBe("mock");

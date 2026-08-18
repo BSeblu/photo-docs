@@ -9,10 +9,9 @@ import {
 import type { Storage } from "./types";
 
 export type StorageOptions = MockStorageOptions | NextCloudStorageOptions;
-export type StorageFactoryOptions = StorageOptions;
 export type StorageBackend = StorageOptions["backend"];
 
-export function createStorage(options?: StorageFactoryOptions): Storage {
+export function createStorage(options?: StorageOptions): Storage {
   if (options?.backend === "mock") {
     return new MockStorage({
       folders: options.folders,
