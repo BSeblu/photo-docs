@@ -4,10 +4,10 @@
 
 **Blocked by:** 10a — Next.js app scaffolding
 
-**Status:** ready-for-agent
+**Status:** closed
 
-- [ ] Vitest configured with jsdom environment and `@vitejs/plugin-react`
-- [ ] Testing Library (`@testing-library/react`, `@testing-library/jest-dom`) installed and configured
-- [ ] `vitest.setup.ts` with jest-dom matchers
-- [ ] `pnpm run test` script added and passes
-- [ ] Sample test for the home page component passes
+- [x] Vitest configured with jsdom environment and `@vitejs/plugin-react`
+- [x] Testing Library (`@testing-library/react`, `@testing-library/jest-dom`) installed and configured
+- [x] `vitest.setup.ts` with jest-dom matchers
+- [x] `pnpm run test` script added and passes
+- [x] Sample test for the home page component passes
