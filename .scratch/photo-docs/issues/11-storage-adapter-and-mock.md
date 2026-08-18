@@ -4,11 +4,11 @@
 
 **Blocked by:** 10b — Unit testing setup
 
-**Status:** ready-for-agent
+**Status:** closed
 
-- [ ] `Storage` TypeScript interface defined in `src/lib/storage/types.ts` with standard folder and file CRUD methods
-- [ ] `MockStorage` implements `Storage` in `src/lib/storage/mock.storage.ts` with configurable seeded folder hierarchy
-- [ ] `MockStorage` provides hooks to simulate failures (quota exceeded, network timeouts, auth errors)
-- [ ] `createStorage()` factory in `src/lib/storage/index.ts` selects backend via `STORAGE_BACKEND=mock|nextcloud`
-- [ ] Barrel export from `src/lib/storage/index.ts`
-- [ ] Unit tests verify `MockStorage` behavior and error simulation
+- [x] `Storage` TypeScript interface defined in `src/lib/storage/types.ts` with standard folder and file CRUD methods
+- [x] `MockStorage` implements `Storage` in `src/lib/storage/mock.storage.ts` with configurable seeded folder hierarchy
+- [x] `MockStorage` provides hooks to simulate failures (quota exceeded, network timeouts, auth errors)
+- [x] `createStorage()` factory in `src/lib/storage/index.ts` selects backend via `STORAGE_BACKEND=mock|nextcloud` (Nextcloud operations are completed by ticket 12)
+- [x] Barrel export from `src/lib/storage/index.ts`
+- [x] Unit tests verify `MockStorage` behavior and error simulation
