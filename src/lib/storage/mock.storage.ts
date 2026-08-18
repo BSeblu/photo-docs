@@ -6,9 +6,12 @@ import type {
 } from "./types";
 
 export interface MockStorageOptions {
+  backend: "mock";
   folders?: string[];
   files?: StorageFileInput[];
 }
+
+export type MockStorageConfig = Omit<MockStorageOptions, "backend">;
 
 const normalizePath = (path: string) => path.replace(/^\/+|\/+$/g, "");
 
@@ -24,7 +27,7 @@ export class MockStorage implements Storage {
   private readonly folders = new Set<string>();
   private readonly errors = new Map<StorageOperation, Error>();
 
-  constructor(options: MockStorageOptions = {}) {
+  constructor(options: MockStorageConfig = {}) {
     this.folders.add("");
     for (const folder of options.folders ?? []) {
       this.addFolderAndParents(folder);

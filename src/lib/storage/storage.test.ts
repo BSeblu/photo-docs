@@ -5,7 +5,11 @@ import {
   NetworkTimeoutError,
   QuotaExceededError,
 } from "./errors";
-import { createStorage } from "./index";
+import {
+  createStorage,
+  type StorageBackend,
+  type StorageFactoryOptions,
+} from "./index";
 import { NextCloudStorage } from "./nextcloud.storage";
 import { MockStorage } from "./mock.storage";
 import type { Storage } from "./types";
@@ -88,6 +92,17 @@ describe("createStorage", () => {
 
   it("creates MockStorage for the mock backend", () => {
     expect(createStorage({ backend: "mock" })).toBeInstanceOf(MockStorage);
+  });
+
+  it("supports backend-specific options through the discriminant", () => {
+    const options = {
+      backend: "mock",
+      folders: ["jobs"],
+    } satisfies StorageFactoryOptions;
+    const backend: StorageBackend = options.backend;
+
+    expect(backend).toBe("mock");
+    expect(createStorage(options)).toBeInstanceOf(MockStorage);
   });
 
   it("uses STORAGE_BACKEND when no backend option is provided", () => {

@@ -1,10 +1,16 @@
 import type { Storage, StorageFile, StorageFileInput } from "./types";
 
+export interface NextCloudStorageOptions {
+  backend: "nextcloud";
+}
+
 const unavailable = () =>
   new Error("NextCloudStorage operations are implemented in ticket 12");
 
 /** Temporary backend seam; ticket 12 supplies the Nextcloud REST implementation. */
 export class NextCloudStorage implements Storage {
+  constructor(_options?: NextCloudStorageOptions) {}
+
   async save(_file: StorageFileInput): Promise<StorageFile> {
     throw unavailable();
   }
