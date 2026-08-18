@@ -1,4 +1,5 @@
 import { MockStorage, type MockStorageOptions } from "./mock.storage";
+import { NextCloudStorage } from "./nextcloud.storage";
 import type { Storage } from "./types";
 
 export type StorageBackend = "mock" | "nextcloud";
@@ -16,7 +17,7 @@ export function createStorage(options: StorageFactoryOptions = {}): Storage {
   }
 
   if (backend === "nextcloud") {
-    throw new Error("NextCloudStorage is not available until ticket 12");
+    return new NextCloudStorage();
   }
 
   throw new Error(`Unsupported storage backend: ${backend}`);
@@ -29,6 +30,7 @@ export {
   ServerError,
 } from "./errors";
 export { MockStorage } from "./mock.storage";
+export { NextCloudStorage } from "./nextcloud.storage";
 export type {
   Storage,
   StorageFile,

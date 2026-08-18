@@ -6,6 +6,7 @@ import {
   QuotaExceededError,
 } from "./errors";
 import { createStorage } from "./index";
+import { NextCloudStorage } from "./nextcloud.storage";
 import { MockStorage } from "./mock.storage";
 import type { Storage } from "./types";
 
@@ -32,6 +33,16 @@ describe("MockStorage", () => {
 
     expect(await storage.get("jobs/2026/photo.jpg")).toBeNull();
     expect(await storage.list("jobs/2026")).toEqual([]);
+  });
+
+  it("loads seeded folders and files", async () => {
+    const storage = new MockStorage({
+      folders: ["jobs/2026"],
+      files: [photo("jobs/2026/seeded.jpg")],
+    });
+
+    expect(await storage.folderExists("jobs/2026")).toBe(true);
+    expect(await storage.list("jobs/2026")).toHaveLength(1);
   });
 
   it("creates folders and reports their existence", async () => {
@@ -62,6 +73,11 @@ describe("MockStorage", () => {
     await expect(storage.folderExists("jobs")).rejects.toBeInstanceOf(
       AuthTokenExpiredError
     );
+
+    storage.clearInjectedErrors();
+    await expect(storage.save(photo("photo.jpg"))).resolves.toMatchObject({
+      path: "photo.jpg",
+    });
   });
 });
 
@@ -80,9 +96,9 @@ describe("createStorage", () => {
     expect(createStorage()).toBeInstanceOf(MockStorage);
   });
 
-  it("rejects unsupported production backends until their adapter exists", () => {
-    expect(() => createStorage({ backend: "nextcloud" })).toThrow(
-      "NextCloudStorage is not available"
+  it("selects the Nextcloud backend", () => {
+    expect(createStorage({ backend: "nextcloud" })).toBeInstanceOf(
+      NextCloudStorage
     );
   });
 });
