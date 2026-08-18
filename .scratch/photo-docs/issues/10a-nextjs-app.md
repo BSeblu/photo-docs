@@ -4,9 +4,9 @@
 
 **Blocked by:** None — can start immediately
 
-**Status:** ready-for-agent
+**Status:** closed
 
-- [ ] Next.js app initialized with App Router and TypeScript (strict mode)
-- [ ] Clean project folder structure: `src/app/`, `src/components/`, `src/hooks/`, `src/lib/`
-- [ ] `pnpm run dev` starts cleanly on localhost:3000
-- [ ] `pnpm run build` succeeds
+- [x] Next.js app initialized with App Router and TypeScript (strict mode)
+- [x] Clean project folder structure: `src/app/`, `src/components/`, `src/hooks/`, `src/lib/`
+- [x] `pnpm run dev` starts cleanly on localhost:3000
+- [x] `pnpm run build` succeeds
